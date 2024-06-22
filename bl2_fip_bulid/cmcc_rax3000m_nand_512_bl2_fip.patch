@@ -1,0 +1,80 @@
+diff --git a/atf-20220606-637ba581b/configs/mt7981_cmcc_rax3000m_defconfig b/atf-20220606-637ba581b/configs/mt7981_cmcc_rax3000m_defconfig
+index d1951dee..9d439309 100644
+--- a/atf-20220606-637ba581b/configs/mt7981_cmcc_rax3000m_defconfig
++++ b/atf-20220606-637ba581b/configs/mt7981_cmcc_rax3000m_defconfig
+@@ -1,6 +1,7 @@
+ CONFIG_PLAT_MT7981=y
+ CONFIG_DRAM_DDR4=y
+-CONFIG_TARGET_FIP_NO_SEC_BOOT=y
++CONFIG_TARGET_ALL_NO_SEC_BOOT=y
+ CONFIG_FLASH_DEVICE_SPIM_NAND=y
+ CONFIG_BGA=y
+ CONFIG_LOG_LEVEL_INFO=y
++CONFIG_SPIM_NAND_TYPE="spim:4k+256"
+diff --git a/build.sh b/build.sh
+index 8230d89a..143e5d01 100755
+--- a/build.sh
++++ b/build.sh
+@@ -1,10 +1,10 @@
+ #!/bin/sh
+ 
+ TOOLCHAIN=aarch64-linux-gnu-
+-#UBOOT_DIR=uboot-mtk-20220606
+-UBOOT_DIR=uboot-mtk-20230718-09eda825
+-#ATF_DIR=atf-20220606-637ba581b
+-ATF_DIR=atf-20231013-0ea67d76a
++UBOOT_DIR=uboot-mtk-20220606
++#UBOOT_DIR=uboot-mtk-20230718-09eda825
++ATF_DIR=atf-20220606-637ba581b
++#ATF_DIR=atf-20231013-0ea67d76a
+ 
+ if [ -z "$SOC" ] || [ -z "$BOARD" ]; then
+ 	echo "Usage: SOC=[mt7981|mt7986] BOARD=<board name> MULTI_LAYOUT=[0|1] $0"
+@@ -76,7 +76,7 @@ make -C "$ATF_DIR" -f makefile all CONFIG_CROSS_COMPILER="${TOOLCHAIN}"
+ 
+ mkdir -p "output"
+ if [ -f "$ATF_DIR/build/${SOC}/release/fip.bin" ]; then
+-	FIP_NAME="${SOC}_${BOARD}-fip"
++	FIP_NAME="${SOC}_${BOARD}_SPINAND-512M-fip"
+ 	if [ "$fixedparts" = "1" ]; then
+ 		FIP_NAME="${FIP_NAME}-fixed-parts"
+ 	fi
+@@ -91,7 +91,7 @@ else
+ fi
+ if grep -q "CONFIG_TARGET_ALL_NO_SEC_BOOT=y" "$ATF_DIR/configs/$ATF_CFG"; then
+ 	if [ -f "$ATF_DIR/build/${SOC}/release/bl2.img" ]; then
+-		BL2_NAME="${SOC}_${BOARD}-bl2"
++		BL2_NAME="${SOC}_${BOARD}_SPINAND-512M-bl2"
+ 		cp -f "$ATF_DIR/build/${SOC}/release/bl2.img" "output/${BL2_NAME}.bin"
+ 		echo "$BL2_NAME build done"
+ 	else
+diff --git a/uboot-mtk-20220606/configs/mt7981_cmcc_rax3000m_defconfig b/uboot-mtk-20220606/configs/mt7981_cmcc_rax3000m_defconfig
+index 4caeeb6f..5605de69 100644
+--- a/uboot-mtk-20220606/configs/mt7981_cmcc_rax3000m_defconfig
++++ b/uboot-mtk-20220606/configs/mt7981_cmcc_rax3000m_defconfig
+@@ -45,8 +45,9 @@ CONFIG_CMD_PING=y
+ CONFIG_CMD_LED_BLINK=y
+ CONFIG_CMD_SMC=y
+ CONFIG_CMD_MTDPARTS=y
++CONFIG_NMBM_MAX_BLOCKS=66
+ CONFIG_MTDIDS_DEFAULT="nmbm0=nmbm0"
+-CONFIG_MTDPARTS_DEFAULT="nmbm0:1024k(bl2),512k(u-boot-env),2048k(factory),2048k(fip),114M(ubi)"
++CONFIG_MTDPARTS_DEFAULT="nmbm0:1024k(bl2),512k(u-boot-env),2048k(factory),2048k(fip),490M(ubi)"
+ CONFIG_CMD_UBI=y
+ CONFIG_CMD_GL_BTN=y
+ CONFIG_OF_EMBED=y
+diff --git a/uboot-mtk-20230718-09eda825/configs/mt7981_cmcc_rax3000m_defconfig b/uboot-mtk-20230718-09eda825/configs/mt7981_cmcc_rax3000m_defconfig
+index 02f4a191..f19eb99d 100644
+--- a/uboot-mtk-20230718-09eda825/configs/mt7981_cmcc_rax3000m_defconfig
++++ b/uboot-mtk-20230718-09eda825/configs/mt7981_cmcc_rax3000m_defconfig
+@@ -49,8 +49,9 @@ CONFIG_CMD_TFTPPUT=y
+ CONFIG_CMD_PING=y
+ CONFIG_CMD_SMC=y
+ CONFIG_CMD_MTDPARTS=y
++CONFIG_NMBM_MAX_BLOCKS=66
+ CONFIG_MTDIDS_DEFAULT="nmbm0=nmbm0"
+-CONFIG_MTDPARTS_DEFAULT="nmbm0:1024k(bl2),512k(u-boot-env),2048k(factory),2048k(fip),114M(ubi)"
++CONFIG_MTDPARTS_DEFAULT="nmbm0:1024k(bl2),512k(u-boot-env),2048k(factory),2048k(fip),490M(ubi)"
+ CONFIG_CMD_GL_BTN=y
+ CONFIG_OF_EMBED=y
+ CONFIG_ENV_OVERWRITE=y
